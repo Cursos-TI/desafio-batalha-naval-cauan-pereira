@@ -1,86 +1,88 @@
 #include <stdio.h>
 
-// Definindo as dimensões do tabuleiro
-#define LINHAS 10
-#define COLUNAS 10
-
-// Função para inicializar o tabuleiro com água (0)
-void inicializarTabuleiro(int tabuleiro[LINHAS][COLUNAS]) {
-    for (int i = 0; i < LINHAS; i++) {
-        for (int j = 0; j < COLUNAS; j++) {
-            tabuleiro[i][j] = 0;
-        }
-    }
-}
-
-// Função para validar se a posição está dentro dos limites do tabuleiro
-int posicaoValida(int linha, int coluna) {
-    return (linha >= 0 && linha < LINHAS && coluna >= 0 && coluna < COLUNAS);
-}
-
-// Função para validar se há sobreposição de navios
-int sobreposicao(int tabuleiro[LINHAS][COLUNAS], int linha, int coluna) {
-    return tabuleiro[linha][coluna] == 3;
-}
-
-// Função para posicionar um navio no tabuleiro
-int posicionarNavio(int tabuleiro[LINHAS][COLUNAS], int linha, int coluna, char direcao) {
-    for (int i = 0; i < 3; i++) {
-        if (direcao == 'H' && posicaoValida(linha, coluna + i) && !sobreposicao(tabuleiro, linha, coluna + i)) {
-            tabuleiro[linha][coluna + i] = 3;
-        } else if (direcao == 'V' && posicaoValida(linha + i, coluna) && !sobreposicao(tabuleiro, linha + i, coluna)) {
-            tabuleiro[linha + i][coluna] = 3;
-        } else {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-// Função para posicionar um navio na diagonal
-int posicionarNavioDiagonal(int tabuleiro[LINHAS][COLUNAS], int linha, int coluna, char direcao) {
-    for (int i = 0; i < 3; i++) {
-        if (direcao == 'D' && posicaoValida(linha + i, coluna + i) && !sobreposicao(tabuleiro, linha + i, coluna + i)) {
-            tabuleiro[linha + i][coluna + i] = 3;
-        } else if (direcao == 'I' && posicaoValida(linha + i, coluna - i) && !sobreposicao(tabuleiro, linha + i, coluna - i)) {
-            tabuleiro[linha + i][coluna - i] = 3;
-        } else {
-            return 0;
-        }
-    }
-    return 1;
-}
+#define TAMANHO 10
+#define TAM_HABILIDADE 5
 
 // Função para imprimir o tabuleiro
-void imprimirTabuleiro(int tabuleiro[LINHAS][COLUNAS]) {
-    printf("Tabuleiro:\n");
-    for (int i = 0; i < LINHAS; i++) {
-        for (int j = 0; j < COLUNAS; j++) {
+void imprimirTabuleiro(int tabuleiro[TAMANHO][TAMANHO]) {
+    printf("\nTabuleiro:\n");
+    for (int i = 0; i < TAMANHO; i++) {
+        for (int j = 0; j < TAMANHO; j++) {
             printf("%d ", tabuleiro[i][j]);
         }
         printf("\n");
     }
 }
 
+// Função para sobrepor a matriz de habilidade no tabuleiro
+void aplicarHabilidade(int tabuleiro[TAMANHO][TAMANHO], int habilidade[TAM_HABILIDADE][TAM_HABILIDADE], int origemX, int origemY) {
+    int offset = TAM_HABILIDADE / 2;
+    for (int i = 0; i < TAM_HABILIDADE; i++) {
+        for (int j = 0; j < TAM_HABILIDADE; j++) {
+            int x = origemX + i - offset;
+            int y = origemY + j - offset;
+            if (x >= 0 && x < TAMANHO && y >= 0 && y < TAMANHO && habilidade[i][j] == 1) {
+                tabuleiro[x][y] = 5;
+            }
+        }
+    }
+}
+
 int main() {
-    int tabuleiro[LINHAS][COLUNAS];
+    int tabuleiro[TAMANHO][TAMANHO] = {0};
 
-    inicializarTabuleiro(tabuleiro);
+    // Definindo navios no tabuleiro
+    tabuleiro[2][2] = 3;
+    tabuleiro[2][3] = 3;
+    tabuleiro[2][4] = 3;
 
-    if (!posicionarNavio(tabuleiro, 2, 3, 'H')) {
-        printf("Falha ao posicionar navio horizontal.\n");
-    }
-    if (!posicionarNavio(tabuleiro, 5, 7, 'V')) {
-        printf("Falha ao posicionar navio vertical.\n");
-    }
+    tabuleiro[5][5] = 3;
+    tabuleiro[6][5] = 3;
+    tabuleiro[7][5] = 3;
 
-    if (!posicionarNavioDiagonal(tabuleiro, 0, 0, 'D')) {
-        printf("Falha ao posicionar navio diagonal (principal).\n");
-    }
-    if (!posicionarNavioDiagonal(tabuleiro, 6, 9, 'I')) {
-        printf("Falha ao posicionar navio diagonal (secundária).\n");
-    }
+    tabuleiro[8][1] = 3;
+    tabuleiro[9][2] = 3;
+    tabuleiro[9][3] = 3;
 
+    tabuleiro[3][7] = 3;
+    tabuleiro[4][6] = 3;
+    tabuleiro[5][5] = 3;
+
+    imprimirTabuleiro(tabuleiro);
+
+    // Matriz de Habilidade: Cone
+    int cone[TAM_HABILIDADE][TAM_HABILIDADE] = {
+        {0, 0, 1, 0, 0},
+        {0, 1, 1, 1, 0},
+        {1, 1, 1, 1, 1},
+        {0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0}
+    };
+
+    // Matriz de Habilidade: Cruz
+    int cruz[TAM_HABILIDADE][TAM_HABILIDADE] = {
+        {0, 0, 1, 0, 0},
+        {0, 0, 1, 0, 0},
+        {1, 1, 1, 1, 1},
+        {0, 0, 1, 0, 0},
+        {0, 0, 1, 0, 0}
+    };
+
+    // Matriz de Habilidade: Octaedro
+    int octaedro[TAM_HABILIDADE][TAM_HABILIDADE] = {
+        {0, 0, 1, 0, 0},
+        {0, 1, 1, 1, 0},
+        {1, 1, 1, 1, 1},
+        {0, 1, 1, 1, 0},
+        {0, 0, 1, 0, 0}
+    };
+
+    // Aplicando habilidades no tabuleiro
+    aplicarHabilidade(tabuleiro, cone, 2, 2);
+    aplicarHabilidade(tabuleiro, cruz, 5, 5);
+    aplicarHabilidade(tabuleiro, octaedro, 8, 8);
+
+    // Exibindo o tabuleiro com habilidades aplicadas
     imprimirTabuleiro(tabuleiro);
 
     return 0;
